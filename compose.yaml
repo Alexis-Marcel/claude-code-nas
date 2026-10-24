@@ -1,0 +1,24 @@
+services:
+  claude-code-nas:
+    image: ghcr.io/alexis-marcel/claude-code-nas:latest
+    build: .
+    container_name: claude-code-nas
+    hostname: claude-code-nas
+    restart: unless-stopped
+    # Must own ./data (chown -R 1000:1000 data). On Unraid: "99:100".
+    user: "1000:1000"
+    environment:
+      REMOTE_CONTROL_NAME: claude-code-nas
+      IDLE_MIN: 60
+    volumes:
+      - ./data/home:/home/claude
+      - ./data/work:/work
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    stop_grace_period: 30s
