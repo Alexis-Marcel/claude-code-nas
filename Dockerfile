@@ -39,7 +39,6 @@ ENV DISABLE_AUTOUPDATER=1 \
 
 USER claude
 WORKDIR /work
-VOLUME ["/home/claude", "/work"]
 
 HEALTHCHECK --interval=1m --timeout=10s --start-period=1m CMD ["/usr/local/bin/healthcheck.sh"]
 CMD ["/usr/local/bin/start.sh"]
