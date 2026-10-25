@@ -10,9 +10,13 @@ services:
     environment:
       REMOTE_CONTROL_NAME: claude-code-nas
       IDLE_MIN: 60
+      # Quick alternative to config/mise.toml, e.g. "python@3.13 terraform"
+      TOOLS: ""
     volumes:
       - ./data/home:/home/claude
       - ./data/work:/work
+      # Optional: tools, MCP servers, settings, instructions, skills
+      - ./config:/config:ro
     read_only: true
     tmpfs:
       - /tmp
