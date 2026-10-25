@@ -41,6 +41,13 @@ docker exec -it claude-code-nas tmux attach -t remote
 
 In the Claude app, open **Code**: the session named `REMOTE_CONTROL_NAME` is there.
 
+## Image
+
+`ghcr.io/alexis-marcel/claude-code-nas` (amd64), tagged `latest` and with the Claude Code
+version it carries (e.g. `2.1.310`). A daily job publishes a new image when a new Claude
+Code version is released; the auto-updater is off inside the container. To use the
+published image instead of building, run `docker compose pull && docker compose up -d`.
+
 ## Configuration
 
 | Variable | Default | |
