@@ -56,8 +56,14 @@ mcp() {
       claude mcp remove -s user "$name" >/dev/null 2>&1 && log "MCP server $name removed"
     fi
   done < "$list"
+  previous=$(cat "$list")
   : > "$list"
   for name in $names; do
+    if ! printf '%s\n' "$previous" | grep -qx "$name" \
+      && jq -e --arg n "$name" '.mcpServers[$n]' "$HOME/.claude.json" >/dev/null 2>&1; then
+      log "MCP server $name was added by hand, not replaced (remove it with \`claude mcp remove -s user $name\`)"
+      continue
+    fi
     json=$(jq -c --arg n "$name" '.mcpServers[$n]' "$CONFIG_DIR/mcp.json")
     claude mcp remove -s user "$name" >/dev/null 2>&1
     if claude mcp add-json -s user "$name" "$json" >/dev/null; then
