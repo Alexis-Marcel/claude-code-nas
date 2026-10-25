@@ -10,6 +10,8 @@ while it runs in a locked-down container.
 
 ## What you get
 
+- Your AI's environment from a folder of standard files: tools, MCP servers, settings,
+  instructions, skills. No Dockerfile needed.
 - `claude remote-control` running 24/7 in tmux, restarted if it exits.
 - Sessions that survive `docker stop`: the server is stopped cleanly and resumes them.
 - An idle-session reaper: sessions opened from the app that stay idle for `IDLE_MIN`
@@ -56,19 +58,47 @@ published image instead of building, run `docker compose pull && docker compose 
 | `IDLE_MIN` | `60` | minutes before an idle app session is stopped |
 | `REAPER_INTERVAL` | `600` | seconds between two reaper checks |
 | `WORKSPACE` | `/work` | Claude's working directory |
+| `TOOLS` | | tools to install, e.g. `python@3.13 terraform` |
+| `CONFIG_DIR` | `/config` | where the files above are read from |
 
 Two volumes hold everything that must persist: `/home/claude` (login, settings, history:
 keep the whole folder, `.claude.json` sits next to `.claude/`) and `/work`.
 
-## Adding your tools
+## Give your AI its environment
 
-The image only carries Claude Code, git, gh, tmux, ripgrep and jq. Add your toolchains
-in your own image:
+Put any of these files in `./config` (mounted read-only on `/config`). All are optional,
+each uses its tool's own format, and they are applied at every start: edit, then
+`docker compose restart`. Copy [`examples/config`](examples/config) to start.
+
+| File | What it gives your AI | Format |
+|---|---|---|
+| `mise.toml` | Languages and CLIs: Python, Node, Go, Java, Rust, Terraform, ruff, pnpm… installed into the home volume, no root | [mise](https://mise.jdx.dev/configuration.html) |
+| `mcp.json` | MCP servers (http or local commands); `${VAR}` reads secrets from the environment | the `mcpServers` block from any MCP server's docs |
+| `settings.json` | Claude Code settings (permissions, model…), merged into `~/.claude/settings.json` | [settings](https://code.claude.com/docs/en/settings) |
+| `managed-settings.json` | Rules Claude cannot lift, such as `deny` rules | same format, highest precedence |
+| `CLAUDE.md` | Standing instructions for every session | [memory](https://code.claude.com/docs/en/memory) |
+| `skills/<name>/SKILL.md` | Skills | [skills](https://code.claude.com/docs/en/skills) |
+
+For a quick setup without files, `TOOLS="python@3.13 terraform"` does the same as a
+`mise.toml`. Claude can also install a tool itself when it needs one (`mise use -g go`).
+
+- **MCP servers in other containers**: put them on the same Docker network and use the
+  container name in the URL (`http://notes-mcp:8765/mcp`), or use the NAS IP.
+- **Servers added by hand** with `claude mcp add` are kept; servers removed from
+  `mcp.json` are removed at the next start.
+- **First start with tools** takes a minute or two (`docker logs` shows progress); later
+  starts reuse them.
+
+### System packages
+
+The container is read-only and not root, so `apt install` is not possible inside it.
+For the rare tool that needs system libraries (for example PHP with `grpc`), extend
+the image:
 
 ```dockerfile
 FROM ghcr.io/alexis-marcel/claude-code-nas:latest
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends golang python3 \
+RUN apt-get update && apt-get install -y --no-install-recommends libvips-tools \
     && rm -rf /var/lib/apt/lists/*
 USER claude
 ```

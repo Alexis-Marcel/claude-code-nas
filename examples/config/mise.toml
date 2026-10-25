@@ -1,0 +1,15 @@
+# Tools for your AI, installed into the home volume at start (no root needed).
+# Any tool from https://mise.jdx.dev/registry.html, one line each.
+[tools]
+python = "3.13"
+node = "24"
+go = "1.27"
+"npm:pnpm" = "latest"
+uv = "latest"
+ruff = "latest"
+
+# PHP without a Dockerfile: a static build with ~55 common extensions
+# (no grpc, pdo_pgsql or pdo_sqlite; use a FROM image if you need them).
+# [tools."http:php"]
+# version = "8.4.23"
+# url = "https://dl.static-php.dev/static-php-cli/bulk/php-{{ version }}-cli-linux-x86_64.tar.gz"

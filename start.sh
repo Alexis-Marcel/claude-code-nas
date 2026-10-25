@@ -18,6 +18,9 @@ done
 # PID files from the previous container are stale and block Remote Control.
 rm -f "$HOME"/.claude/sessions/*.json
 
+# Tools, MCP servers, settings, instructions and skills from /config.
+/usr/local/bin/apply-config.sh
+
 # No --no-create-session-in-dir: without a session in the directory, a
 # restarted server cannot resume the sessions it was serving.
 tmux new-session -d -s remote -n remote -c "$WORKSPACE" \
